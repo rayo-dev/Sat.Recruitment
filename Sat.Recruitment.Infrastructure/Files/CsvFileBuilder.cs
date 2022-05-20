@@ -18,10 +18,11 @@ namespace Sat.Recruitment.Infrastructure.Files
             //return Task.Factory.StartNew(() => {
                 lock (mylock)
                 {
+                    this.ValidatePath(filePath);
                     using (FileStream stream = new FileStream(filePath, FileMode.OpenOrCreate))
                     {
-                    // Do your writing here.
-                    using (StreamReader reader = new StreamReader(stream))
+                        // Do your writing here.
+                        using (StreamReader reader = new StreamReader(stream))
                         {
                             string line;
                             while ((line = reader.ReadLine()) != null)
@@ -41,6 +42,7 @@ namespace Sat.Recruitment.Infrastructure.Files
             //return Task.Factory.StartNew(() => {
                 lock (mylock)
                 {
+                    this.ValidatePath(filePath);
                     using (FileStream stream = new FileStream(filePath, FileMode.Append, FileAccess.Write))
                     {
                         // Do your writing here.
@@ -56,6 +58,15 @@ namespace Sat.Recruitment.Infrastructure.Files
                     return Task.FromResult(result);
                 }   
             //});
+        }
+
+        private void ValidatePath(string filePath)
+        {
+            var directory = System.IO.Path.GetDirectoryName(filePath);
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
         }
     }
 }
