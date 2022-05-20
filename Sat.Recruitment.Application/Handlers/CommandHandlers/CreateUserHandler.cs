@@ -1,10 +1,11 @@
 ﻿using FluentValidation.Results;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Sat.Recruitment.Application.Common.Exceptions;
 using Sat.Recruitment.Application.Common.Mappings;
-using Sat.Recruitment.Application.Responses;
+using Sat.Recruitment.Application.Common.Response;
+using Sat.Recruitment.Application.Interfaces;
 using Sat.Recruitment.Application.Users.Commands;
-using Sat.Recruitment.Core.Interfaces;
 using Sat.Recruitment.Core.Strategies;
 using Sat.Recruitment.Core.Validators;
 using System.Linq;
@@ -13,17 +14,19 @@ using System.Threading.Tasks;
 
 namespace Sat.Recruitment.Application.Handlers.CommandHandlers
 {
-    public class CreateUserHandler : IRequestHandler<CreateUserCommand, UserResponse>
+    public class CreateUserHandler : IRequestHandler<CreateUserCommand, Result>
     {
-        private readonly IUserRepository _userRepo;
-
+        private readonly IUserFile _userFile;
+        private readonly string userPath;
         public CreateUserHandler(
-            IUserRepository userRepo)
+            IConfiguration configuration,
+            IUserFile userFile)
         {
-            _userRepo = userRepo;
+            _userFile = userFile;
+            userPath = configuration.GetSection("Paths").GetSection("UserFile").Value;
         }
 
-        public async Task<UserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public Task<Result> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var entity = UserMapper.Mapper.Map<Sat.Recruitment.Core.Entities.User>(request);
             UserValidator rules = new UserValidator();
@@ -31,21 +34,21 @@ namespace Sat.Recruitment.Application.Handlers.CommandHandlers
 
             if (validationResult.IsValid)
             {
-                var searchEntity = await _userRepo.Search(entity);
+                var searchEntity = _userFile.GetDataUsersFile(userPath).Where(u => u.Equals(entity));
                 if (!searchEntity.Any())
                 {
                     IBonusStrategy strategy = BonusStrategyFactory.GetStrategy(entity.UserType);
                     if (strategy is null)
                     {
-                        throw new NotFoundException("User type", entity.UserType);
+                        throw new BusinessException("User type is not valid");
                     }
                     entity.Money += strategy.CalculateBonus(entity);
-                    var newUser = await _userRepo.AddAsync(entity);
-                    return UserMapper.Mapper.Map<UserResponse>(newUser);
+                    int newUser = _userFile.WriteUsersFile(userPath, new[] { entity });
+                    return Task.FromResult(Result.Success());
                 } 
                 else
                 {
-                    throw new BusinessException("User duplicaded");
+                    throw new BusinessException("User already exists");
                 }
             }
             else

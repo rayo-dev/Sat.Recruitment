@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Sat.Recruitment.Application.Common.Exceptions;
+using Sat.Recruitment.Application.Common.Response;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -33,17 +36,17 @@ namespace Sat.Recruitment.Api.Common
         {
             var code = HttpStatusCode.InternalServerError;
 
-            var result = string.Empty;
+            var errors = new List<string>();
 
             switch (exception)
             {
                 case ValidationException validationException:
                     code = HttpStatusCode.BadRequest;
-                    result = JsonSerializer.Serialize(validationException.Failures);
+                    errors.AddRange(validationException.Failures);
                     break;
                 case BusinessException businessException:
                     code = HttpStatusCode.BadRequest;
-                    result = JsonSerializer.Serialize(businessException.Message);
+                    errors.Add(businessException.Message);
                     break;
                 case ApplicationException _:
                     code = HttpStatusCode.BadRequest;
@@ -55,11 +58,7 @@ namespace Sat.Recruitment.Api.Common
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
-
-            if (result == string.Empty)
-            {
-                result = JsonSerializer.Serialize(new { error = exception.Message });
-            }
+            var result = JsonSerializer.Serialize(Result.Failure(errors));
 
             return context.Response.WriteAsync(result);
         }

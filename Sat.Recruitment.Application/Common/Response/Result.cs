@@ -5,6 +5,8 @@ namespace Sat.Recruitment.Application.Common.Response
 {
     public class Result
     {
+        public Result() { }
+
         internal Result(bool succeeded, IEnumerable<string> errors)
         {
             Succeeded = succeeded;
@@ -12,6 +14,8 @@ namespace Sat.Recruitment.Application.Common.Response
         }
 
         public bool Succeeded { get; set; }
+
+        public object Data { get; set; }
 
         public string[] Errors { get; set; }
 

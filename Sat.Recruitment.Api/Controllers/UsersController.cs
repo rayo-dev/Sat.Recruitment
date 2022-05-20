@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Sat.Recruitment.Application.Responses;
+using Sat.Recruitment.Application.Common.Response;
 using Sat.Recruitment.Application.Users.Commands;
 using System.Threading.Tasks;
 
@@ -19,7 +19,7 @@ namespace Sat.Recruitment.Api.Controllers
 
         [HttpPost]
         [Route("Create")]
-        public async Task<ActionResult<UserResponse>> Create([FromBody] CreateUserCommand user)
+        public async Task<ActionResult<Result>> Create([FromBody] CreateUserCommand user)
         {
             var result = await _mediator.Send(user);
             return Ok(result);

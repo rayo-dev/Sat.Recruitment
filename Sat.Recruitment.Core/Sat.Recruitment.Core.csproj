@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentMigrator.Abstractions" Version="3.3.2" />
     <PackageReference Include="FluentValidation" Version="11.0.1" />
   </ItemGroup>
 

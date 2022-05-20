@@ -13,11 +13,8 @@ namespace Sat.Recruitment.Infrastructure.Repositories
 {
     public class UserRepository : Repository<Core.Entities.User>, IUserRepository
     {
-        public UserRepository(
-            IConfiguration configuration,
-            SATContext employeeContext) : base(employeeContext)
+        public UserRepository(SATContext employeeContext) : base(employeeContext)
         {
-            CsvFileBuilder.SetConfiguration(configuration);
         }
 
         public async Task<IEnumerable<Core.Entities.User>> Search(User user)
@@ -31,7 +28,6 @@ namespace Sat.Recruitment.Infrastructure.Repositories
         public override async Task<User> AddAsync(User user)
         {
             var result = await base.AddAsync(user);
-            CsvFileBuilder.WriteUsersFile(_employeeContext.Users);
             return result;
         }
     }

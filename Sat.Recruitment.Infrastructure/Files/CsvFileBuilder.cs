@@ -1,80 +1,61 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Sat.Recruitment.Core.Entities;
-using Microsoft.Extensions.Configuration;
-using System.Text;
+using Sat.Recruitment.Application.Interfaces;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Sat.Recruitment.Infrastructure.Files
 {
-    public static class CsvFileBuilder
+    public class CsvFileBuilder : ICsvFileBuilder
     {
-        private static string userPath = string.Empty;
+        //private readonly Mutex mutex = new Mutex();
 
-        public static void SetConfiguration(IConfiguration configuration)
+        private static readonly object mylock = new object();
+
+        public Task<IList<string>> GetDataFile(string filePath)
         {
-            userPath = configuration.GetSection("Paths").GetSection("UserFile").Value;
-        }
-
-        public static void DeleteUsersFile()
-        {
-            var filePath = userPath;
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-        }
-
-        public static IEnumerable<User> GetUsersFile()
-        {
-            var filePath = userPath;
-            var users = new List<User>();
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.ReadWrite))
-            {
-                using (StreamReader reader = new StreamReader(fileStream))
+            IList<string> lines = new List<string>();
+            //return Task.Factory.StartNew(() => {
+                lock (mylock)
                 {
-                    string line = reader.ReadLineAsync().Result;
-                    while (line != null)
+                    using (FileStream stream = new FileStream(filePath, FileMode.OpenOrCreate))
                     {
-                        var lineSeparated = line.Split(',');
-                        var userToAdd = new User
+                    // Do your writing here.
+                    using (StreamReader reader = new StreamReader(stream))
                         {
-                            Name = lineSeparated[(int)UserFileRecordEnum.Name],
-                            Email = lineSeparated[(int)UserFileRecordEnum.Email],
-                            Phone = lineSeparated[(int)UserFileRecordEnum.Phone],
-                            Address = lineSeparated[(int)UserFileRecordEnum.Address],
-                            UserType = lineSeparated[(int)UserFileRecordEnum.UserType],
-                            Money = decimal.Parse(lineSeparated[(int)UserFileRecordEnum.Money]),
-                        };
-                        users.Add(userToAdd);
+                            string line;
+                            while ((line = reader.ReadLine()) != null)
+                            {
+                                lines.Add(line);
+                            }
+                        }
                     }
+                    return Task.FromResult(lines);
                 }
-            }
-            return users;
+            //});
         }
 
-        public static void WriteUsersFile(IEnumerable<User> users)
+        public Task<int> WriteFile(string filePath, IEnumerable<string> lines)
         {
-            var filePath = userPath;
-
-            using (FileStream fileStream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite))
-            {
-                using (StreamWriter writer = File.AppendText(filePath))
+            int result = 0;
+            //return Task.Factory.StartNew(() => {
+                lock (mylock)
                 {
-                    foreach (var r in users)
+                    using (FileStream stream = new FileStream(filePath, FileMode.Append, FileAccess.Write))
                     {
-                        StringBuilder sb = new StringBuilder();
-                        sb.Append(r.Name + ',');
-                        sb.Append(r.Address + ',');
-                        sb.Append(r.Phone + ',');
-                        sb.Append(r.Phone + ',');
-                        sb.Append(r.UserType + ',');
-                        sb.Append(r.Money);
-
-                        writer.WriteLine(sb.ToString());
+                        // Do your writing here.
+                        using (StreamWriter writer = new StreamWriter(stream))
+                        {
+                            foreach (var line in lines)
+                            {
+                                writer.WriteLine(line);
+                                result++;
+                            }
+                        }
                     }
-                }
-            }
+                    return Task.FromResult(result);
+                }   
+            //});
         }
     }
 }

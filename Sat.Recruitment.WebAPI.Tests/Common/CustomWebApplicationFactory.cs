@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Sat.Recruitment.Application.Interfaces;
 using System;
 
 namespace Sat.Recruitment.WebAPI.Tests.Common
@@ -22,12 +23,13 @@ namespace Sat.Recruitment.WebAPI.Tests.Common
                 using var scope = sp.CreateScope();
                 var scopedServices = scope.ServiceProvider;
                 var configuration = scopedServices.GetRequiredService<IConfiguration>();
+                var userFile = scopedServices.GetRequiredService<IUserFile>();
                 var logger = scopedServices.GetRequiredService<ILogger<CustomWebApplicationFactory<TStartup>>>();
 
                 try
                 {
                     // Seed the plainText with test data.
-                    Helpers.InitializeDbForTests(configuration);
+                    Helpers.InitializeDbForTests(configuration, userFile);
                 }
                 catch (Exception ex)
                 {

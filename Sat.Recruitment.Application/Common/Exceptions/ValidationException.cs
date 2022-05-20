@@ -10,7 +10,7 @@ namespace Sat.Recruitment.Application.Common.Exceptions
         public ValidationException()
             : base("One or more validation failures have occurred.")
         {
-            Failures = new Dictionary<string, string[]>();
+            Failures = new List<string>();
         }
 
         public ValidationException(List<ValidationFailure> failures)
@@ -27,10 +27,10 @@ namespace Sat.Recruitment.Application.Common.Exceptions
                     .Select(e => e.ErrorMessage)
                     .ToArray();
 
-                Failures.Add(propertyName, propertyFailures);
+                Failures.AddRange(propertyFailures);
             }
         }
 
-        public IDictionary<string, string[]> Failures { get; }
+        public List<string> Failures { get; }
     }
 }

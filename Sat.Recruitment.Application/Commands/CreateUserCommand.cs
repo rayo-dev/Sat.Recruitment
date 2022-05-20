@@ -1,9 +1,9 @@
 ﻿using MediatR;
-using Sat.Recruitment.Application.Responses;
+using Sat.Recruitment.Application.Common.Response;
 
 namespace Sat.Recruitment.Application.Users.Commands
 {
-    public class CreateUserCommand : IRequest<UserResponse>
+    public class CreateUserCommand : IRequest<Result>
     {
         public string Name { get; set; }
         public string Email { get; set; }
