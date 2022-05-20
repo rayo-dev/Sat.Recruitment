@@ -82,14 +82,14 @@ namespace Sat.Recruitment.WebAPI.Tests.Controllers.Users
             {
                 Name = "Luis",
                 Address = "Santiago 20 Ovalo San Juan",
-                Email = "Juan@ma",
+                Email = "lus.lopez@ma.mx",
                 Money = -0112,
                 Phone = "+5491154762312",
                 UserType = "Normal"
             };
 
             var result = await Helpers.PostAsync<Result>(_client, "/api/users/create", command);
-            Assert.Contains($"'Money' debe ser mayor que '0'.", result.Errors);
+            Assert.Contains($"'Money' must be greater than '0'.", result.Errors);
         }
 
         [Fact]
@@ -97,16 +97,16 @@ namespace Sat.Recruitment.WebAPI.Tests.Controllers.Users
         {
             var command = new CreateUserCommand
             {
-                Name = "Juan",
+                Name = "Gian Piero",
                 Address = "Lima Av Arequipa 2464",
-                Email = "Juan@marmol",
+                Email = "gian221@gmail.com",
                 Money = 1234,
                 Phone = "+5491154762312",
                 UserType = string.Empty
             };
 
             var result = await Helpers.PostAsync<Result>(_client, "/api/users/create", command);
-            Assert.Contains($"'User Type' no debería estar vacío.", result.Errors);
+            Assert.Contains($"'User Type' must not be empty.", result.Errors);
         }
     }
 }
